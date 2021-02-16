@@ -1,0 +1,60 @@
+setwd("H:/ORIMA Melbourne/Comms Tracking and Eval Team/Training materials/Analysis development reading/R/Install packages")
+install.packages("anesrake_0.75.tar.gz", repos=NULL, type="source")
+
+library(weights)
+library(survey)
+library(foreign)
+dat<-read.spss("C:/Users/garry.huen/Desktop/Nov 19 PS User.sav",use.value.labels=FALSE,to.data.frame=TRUE)
+str(dat)
+View(dat)
+
+
+FCCUsers<-dat[dat$q24 %in% 1,]
+
+#Weighting for FCCUsers
+wpct(FCCUsers$q7)
+wpct(FCCUsers$Q4.)
+wpct(FCCUsers$HH_Income)
+wpct(FCCUsers$q53)
+wpct(FCCUsers$State.)
+wpct(FCCUsers$Remoteness)
+wpct(FCCUsers$ATSI_Flag)
+wpct(FCCUsers$Grandparent_Flag)
+wpct(FCCUsers$Gender)
+
+
+
+q7<-c(0.847253474520185, 0.152746525479815)
+Q4.<-c(0.376968894771674, 0.461548643282594, 0.161482461945731)
+HH_Income<-c(0.293798916315473, 0.543648404575557, 0.162552679108971)
+q53<-c(0.222, 0.778)
+State.<-c(0.358917071888553, 0.276777500328558, 0.209094493363123, 0.0643974241030359, 0.0908135103167302)
+Remoteness<-c(0.721679429627674, 0.278320570372326)
+ATSI_Flag<-c(0.0336446494880162, 0.966355350511984)
+Grandparent_Flag<-c(0.00472600427590863, 0.995273995724091)
+Gender<-c(0.107566845557002, 0.892433154442998)
+sum(q7)
+sum(Q4.)
+sum(HH_Income)
+sum(q53)
+sum(State.)
+sum(Remoteness)
+sum(ATSI_Flag)
+sum(Grandparent_Flag)
+sum(Gender)
+
+FCCUserstargets<-list(q7,Q4.,HH_Income,q53,State.,Remoteness,ATSI_Flag,Grandparent_Flag,Gender)
+names(FCCUserstargets)=c("q7","Q4.","HH_Income","q53","State.","Remoteness","ATSI_Flag","Grandparent_Flag","Gender")
+
+
+library(anesrake)
+anesrakefinder(FCCUserstargets,FCCUsers,choosemethod="average")
+FCCUsersweight<-anesrake(FCCUserstargets,FCCUsers,caseid=FCCUsers$respid,verbose=TRUE,cap=10,choosemethod="average",type="nolim",nlim=9,force1=TRUE)
+summary(FCCUsersweight)
+
+FCCUsers$FCCUsersWeight<-unlist(FCCUsersweight[1])
+FCCUsersWeights<-data.frame(FCCUsers$respid,FCCUsers$FCCUsersWeight)
+names(FCCUsersWeights)<-c("respid","FCCUsersWeight")
+summary(FCCUsersWeights$FCCUsersWeight)
+
+write.csv(FCCUsersWeights,"C:/Users/garry.huen/Desktop/Weights_Nov19_User.csv")
